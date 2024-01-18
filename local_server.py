@@ -1059,6 +1059,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         with tempfile.TemporaryDirectory() as tmpdirname:
             extract_dir = os.path.join(tmpdirname, 'ex3')
             os.system(f'mkdir -p {extract_dir}')
+            print(f'Extract directory {extract_dir}')
             os.system(f'unzip {zip_file_path} -d {extract_dir}')
             if hw_num == 3:
                 cwd = os.getcwd()
@@ -1071,6 +1072,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                     result += f'Running "{cmd}":\n'
                     result += subprocess.check_output(cmd, shell=True).decode()
                 except subprocess.CalledProcessError as e:
+                    time.sleep(100)
                     return (False, f"Tests failed:\n{result}\ {'=' * 8} EXCEPTION {'=' * 8}\n{e.output.decode()}")
                 finally:
                     os.chdir(cwd)
