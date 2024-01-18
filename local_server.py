@@ -1072,7 +1072,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                     result += f'Running "{cmd}":\n'
                     result += subprocess.check_output(cmd, shell=True).decode()
                 except subprocess.CalledProcessError as e:
-                    time.sleep(100)
+                    # time.sleep(100)
                     return (False, f"Tests failed:\n{result}\ {'=' * 8} EXCEPTION {'=' * 8}\n{e.output.decode()}")
                 finally:
                     os.chdir(cwd)
