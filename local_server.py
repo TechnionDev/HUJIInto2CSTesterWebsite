@@ -1064,7 +1064,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                 cwd = os.getcwd()
                 os.chdir(tmpdirname)
                 try:
-                    cmd = f'cp {os.path.join(cwd, 'ex3_tester.py')} ./'
+                    cmd = f'cp {os.path.join(cwd, "ex3_tester.py")} ./'
                     result += f'Running "{cmd}":\n'
                     result += subprocess.check_output(cmd, shell=True).decode()
                     cmd = f'python ex3_tester.py 2>&1'
