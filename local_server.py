@@ -873,7 +873,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         self.range = None  # bug fix
 
         run_status, info = self.deal_post_data()
-        self.log_message(f'Tests finished wit status: {run_status} and info: {info}')
+        self.log_message(f'Tests finished with status: {run_status} and info: {info}')
         f = io.BytesIO()
         f.write(b'<!DOCTYPE html>')
         f.write(b"<html>\n<title>Upload Result Page</title>\n")
