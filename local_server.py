@@ -20,7 +20,7 @@ import email.utils
 import datetime
 import copy
 # from send2trash import send2trash, TrashPermissionError
-import pkg_resources as pkg_r
+# import pkg_resources as pkg_r
 import tempfile
 import shutil
 import os
