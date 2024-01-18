@@ -872,14 +872,14 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
         self.range = None  # bug fix
 
-        r, info = self.deal_post_data()
-        print((r, info, "by: ", self.client_address))
+        run_status, info = self.deal_post_data()
+        self.log_message(f'Tests finished wit status: {run_status} and info: {info}')
         f = io.BytesIO()
         f.write(b'<!DOCTYPE html>')
         f.write(b"<html>\n<title>Upload Result Page</title>\n")
         f.write(b"<body>\n<h2>Upload Result Page</h2>\n")
         f.write(b"<hr>\n")
-        if r:
+        if run_status:
             f.write(b"<strong>Success:</strong>\n")
         else:
             f.write(b"<strong>Failed:</strong>\n")
@@ -918,7 +918,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
         hw_num_raw = self.rfile.readline()
         hw_num = int(hw_num_raw)
-        print('post hw_num: ', hw_num)
+        self.log_message(f'post hw_num: {hw_num}')
         # if hw_num != PASSWORD + b'\r\n':  # readline returns password with \r\n at end
         #     # won't even read what the random guy has to say and slap 'em
         #     return (False, "Incorrect password")
@@ -1059,7 +1059,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         with tempfile.TemporaryDirectory() as tmpdirname:
             extract_dir = os.path.join(tmpdirname, 'ex3')
             os.system(f'mkdir -p {extract_dir}')
-            print(f'Extract directory {extract_dir}')
+            self.log_message(f'Extract directory {extract_dir}')
             os.system(f'unzip {zip_file_path} -d {extract_dir}')
             if hw_num == 3:
                 cwd = os.getcwd()
