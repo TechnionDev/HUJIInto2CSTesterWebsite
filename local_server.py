@@ -28,13 +28,13 @@ import sys
 from subprocess import call
 import hashlib
 import subprocess
-ftp_dir = 'G:\\'
+
+ftp_dir = './tmp'
 # DEFAULT PORT TO LAUNCH SERVER
 all_port = 6969
 # UPLOAD PASSWORD SO THAT ANYONE RANDOM CAN'T UPLOAD
 PASSWORD = "".encode('utf-8')
 log_location = "G:/py-server/"  # fallback log_location = "./"
-
 
 # FEATURES
 # ----------------------------------------------------------------
@@ -51,17 +51,17 @@ log_location = "G:/py-server/"  # fallback log_location = "./"
 
 
 # INSTALL REQUIRED PACKAGES
-REQUEIREMENTS = ['send2trash', ]
-
-
-INSTALLED_PIP = [pkg.key for pkg in pkg_r.working_set]
+# REQUEIREMENTS = ['send2trash', ]
+#
+#
+# INSTALLED_PIP = [pkg.key for pkg in pkg_r.working_set]
 
 reload = False
 
-for i in REQUEIREMENTS:
-    if i not in INSTALLED_PIP:
-        call([sys.executable, "-m", "pip", "install",
-             '--disable-pip-version-check', '--quiet', i])
+# for i in REQUEIREMENTS:
+#     if i not in INSTALLED_PIP:
+#         call([sys.executable, "-m", "pip", "install",
+#              '--disable-pip-version-check', '--quiet', i])
 
 
 zip_temp_dir = tempfile.gettempdir() + '/zip_temp/'
@@ -114,7 +114,6 @@ XXX To do:
 - log user-agent header and other interesting goodies
 - send error log to separate file
 """
-
 
 # See also:
 #
@@ -214,16 +213,16 @@ def humanbytes(B):
     ret = ''
 
     if B >= TB:
-        ret += '%i TB  ' % (B//TB)
+        ret += '%i TB  ' % (B // TB)
         B %= TB
     if B >= GB:
-        ret += '%i GB  ' % (B//GB)
+        ret += '%i GB  ' % (B // GB)
         B %= GB
     if B >= MB:
-        ret += '%i MB  ' % (B//MB)
+        ret += '%i MB  ' % (B // MB)
         B %= MB
     if B >= KB:
-        ret += '%i KB  ' % (B//KB)
+        ret += '%i KB  ' % (B // KB)
         B %= KB
     if B > 0:
         ret += '%i bytes' % B
@@ -233,7 +232,7 @@ def humanbytes(B):
 
 # PAUSE AND RESUME FEATURE ----------------------------------------
 
-def copy_byte_range(infile, outfile, start=None, stop=None, bufsize=16*1024):
+def copy_byte_range(infile, outfile, start=None, stop=None, bufsize=16 * 1024):
     '''
     TO SUPPORT PAUSE AND RESUME FEATURE
     Like shutil.copyfileobj, but only copy a range of the streams.
@@ -268,6 +267,7 @@ def parse_byte_range(byte_range):
         raise ValueError('Invalid byte range %s' % byte_range)
     return first, last
 
+
 # ---------------------------x--------------------------------
 
 
@@ -293,7 +293,6 @@ DEFAULT_ERROR_CONTENT_TYPE = "text/html;charset=utf-8"
 
 
 class HTTPServer(socketserver.TCPServer):
-
     allow_reuse_address = 1  # Seems to make sense in testing environment
 
     def server_bind(self):
@@ -309,7 +308,6 @@ class ThreadingHTTPServer(socketserver.ThreadingMixIn, HTTPServer):
 
 
 class BaseHTTPRequestHandler(socketserver.StreamRequestHandler):
-
     """HTTP request handler base class.
 
     The following explanation of HTTP serves to guide you through the
@@ -522,7 +520,7 @@ class BaseHTTPRequestHandler(socketserver.StreamRequestHandler):
         # Examine the headers and look for an Expect directive
         expect = self.headers.get('Expect', "")
         if (expect.lower() == "100-continue" and
-            self.protocol_version >= "HTTP/1.1" and
+                self.protocol_version >= "HTTP/1.1" and
                 self.request_version >= "HTTP/1.1"):
             if not self.handle_expect_100():
                 return False
@@ -796,7 +794,6 @@ class BaseHTTPRequestHandler(socketserver.StreamRequestHandler):
 
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
-
     """Simple HTTP request handler with GET and HEAD commands.
 
     This serves files from the current directory and any of its
@@ -820,6 +817,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         super().__init__(*args, **kwargs)
 
     def is_ip_allowed(self):
+        return True
         with open('./whitelist.txt', 'r') as f:
             for line in f:
                 line = line.strip()
@@ -834,7 +832,8 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         """Serve a GET request."""
         if not self.is_ip_allowed():
             if '236360_secret_compi_register' in self.path:
-                os.system(f'echo \#\# Auto registered using {self.path} on {datetime.datetime.now()} >> ./whitelist.txt')
+                os.system(
+                    f'echo \#\# Auto registered using {self.path} on {datetime.datetime.now()} >> ./whitelist.txt')
                 os.system(f'echo {self.client_address[0]} >> ./whitelist.txt')
                 self.send_error(201, 'Registered')
                 return
@@ -886,7 +885,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             f.write(b"<strong>Failed:</strong>\n")
         f.write(info.encode())
         f.write(("<br><a href=\"%s\">back</a>\n" %
-                self.headers['referer']).encode())
+                 self.headers['referer']).encode())
         f.write(b"<hr><small>Powered By: https://github.com/gur111</small>\n")
 
         length = f.tell()
@@ -919,7 +918,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
         hw_num_raw = self.rfile.readline()
         hw_num = int(hw_num_raw)
-        print('post hw_num: ',  hw_num)
+        print('post hw_num: ', hw_num)
         # if hw_num != PASSWORD + b'\r\n':  # readline returns password with \r\n at end
         #     # won't even read what the random guy has to say and slap 'em
         #     return (False, "Incorrect password")
@@ -981,12 +980,13 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                     test_name = fn.split('.')[0]
                     if len(fn.split('.')) != 2:
                         return (False, ("Bad upload format.\n" +
-                                "When uploading a test please upload both the in/out files with identical base name and extensions (.in and .out).\n" +
+                                        "When uploading a test please upload both the in/out files with identical base name and extensions (.in and .out).\n" +
                                         "e.g. test.in and test.out").replace("\n", "<br>"))
-                    if test_name+".in" not in uploaded_files or test_name+".out" not in uploaded_files:
+                    if test_name + ".in" not in uploaded_files or test_name + ".out" not in uploaded_files:
                         return (False, "Bad upload format.\n" +
-                                ("When uploading a test please upload both the in/out files with identical base name and extensions (.in and .out).\n" +
-                                 "e.g. test.in and test.out").replace('\n', '<br>'))
+                                (
+                                        "When uploading a test please upload both the in/out files with identical base name and extensions (.in and .out).\n" +
+                                        "e.g. test.in and test.out").replace('\n', '<br>'))
                 for fn in uploaded_files:
                     test_name = fn.split('.')[0]
                     if not fn.endswith('.in'):
@@ -994,7 +994,9 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                     curr_res = self.run_new_test_on_archive(fn, hw_num)
                     result += curr_res[1]
                     if result[0] == False:
-                        return (False, f"Some of the new tests failed on too many executables\n======= OUTPUT =======\n{result}".replace("\n", "<br>"))
+                        return (False,
+                                f"Some of the new tests failed on too many executables\n======= OUTPUT =======\n{result}".replace(
+                                    "\n", "<br>"))
 
                 return (True, f"New test passed!\n======= OUTPUT =======\n{result}".replace("\n", "<br>"))
         finally:
@@ -1027,13 +1029,14 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                     f'{exec_path} < {tmpdirname}/{base_test_name}.in > {tmpdirname}/{base_test_name}.res')
                 try:
                     curr_res = subprocess.check_output(
-                        f'diff {tmpdirname}/{base_test_name}.res {tmpdirname}/{base_test_name}.out 2>&1', shell=True).decode()
+                        f'diff {tmpdirname}/{base_test_name}.res {tmpdirname}/{base_test_name}.out 2>&1',
+                        shell=True).decode()
                     # or f"Test {base_test_name} passed on {file}\n"
                     result += curr_res
                 except subprocess.CalledProcessError as e:
                     failed_on.append(file)
                     result += f"Test {base_test_name} failed on {file}:\n{e.output.decode()}\n"
-            if len(failed_on) >= 0.2*len(assignments_archive):
+            if len(failed_on) >= 0.2 * len(assignments_archive):
                 result += f"Test failed on too many executables (fails on {len(failed_on)}/{len(assignments_archive)} >= 20%)\n"
                 return (False, result)
             elif len(failed_on) == 0:
@@ -1054,47 +1057,23 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         # Create tmp dir
         result = ""
         with tempfile.TemporaryDirectory() as tmpdirname:
-            os.system(f'unzip {zip_file_path} -d {tmpdirname}')
-            if hw_num == 1:
-                exec_path = f'{tmpdirname}/hw1.exec'
-                os.system(
-                    f'flex -o {tmpdirname}/lex.yy.c {tmpdirname}/scanner.lex')
-                os.system(
-                    f'g++ -std=c++17 {tmpdirname}/lex.yy.c {tmpdirname}/hw1.cpp -o {exec_path}')
-            elif hw_num == 2:
-                exec_path = f'{tmpdirname}/hw2.exec'
+            extract_dir = os.path.join(tmpdirname, 'ex3')
+            os.system(f'mkdir -p {extract_dir}')
+            os.system(f'unzip {zip_file_path} -d {extract_dir}')
+            if hw_num == 3:
                 cwd = os.getcwd()
                 os.chdir(tmpdirname)
                 try:
-                    cmd = f'flex scanner.lex 2>&1'
+                    cmd = f'cp {os.path.join(cwd, 'ex3_tester.py')} ./'
                     result += f'Running "{cmd}":\n'
                     result += subprocess.check_output(cmd, shell=True).decode()
-                    cmd = f'bison -d parser.ypp 2>&1'
-                    result += f'Running "{cmd}":\n'
-                    result += subprocess.check_output(cmd, shell=True).decode()
-                    cmd = f'g++ -std=c++17 *.cpp *.c -o {exec_path} 2>&1'
+                    cmd = f'python ex3_tester.py 2>&1'
                     result += f'Running "{cmd}":\n'
                     result += subprocess.check_output(cmd, shell=True).decode()
                 except subprocess.CalledProcessError as e:
-                    return (False, f"Compilation failed:\n{result}\ {'='*8} EXCEPTION {'='*8}\n{e.output.decode()}")
+                    return (False, f"Tests failed:\n{result}\ {'=' * 8} EXCEPTION {'=' * 8}\n{e.output.decode()}")
                 finally:
                     os.chdir(cwd)
-
-                # Make all inside {tmpdirname}
-                # os.system(f'cd {tmpdirname}')
-                # os.system(f'make all')
-                # os.system('cd -')
-                #
-            try:
-                result += subprocess.check_output(
-                    f'./herd_checker_run.sh {exec_path} {tmpdirname} {hw_num} 2>&1', shell=True).decode()
-            except subprocess.CalledProcessError as e:
-                return (False, e.output.decode())
-
-            # Calculate md5 hash of file
-            md5_hash = self.md5(f'{exec_path}')
-            os.system(
-                f'cp {exec_path} {self.assignments_archive_dir.format(hw_num)}/{md5_hash}.exec')
 
             return (True, result)
 
@@ -1172,8 +1151,8 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                 msg = "Directory created!"
             except Exception as e:
                 msg = "Failed To Create folder " + \
-                    pathtemp[1][6:] + "</h1><br>" + \
-                    e.__class__.__name__ + " : " + str(e)
+                      pathtemp[1][6:] + "</h1><br>" + \
+                      e.__class__.__name__ + " : " + str(e)
 
             encoded = msg.encode('utf-8', 'surrogateescape')
 
@@ -1210,7 +1189,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 print(e)
                 msg = "<!doctype HTML><h1>Recycling failed  " + xpath + \
-                    "</h1><br>" + e.__class__.__name__ + " : " + str(e)
+                      "</h1><br>" + e.__class__.__name__ + " : " + str(e)
 
             encoded = msg.encode('utf-8', 'surrogateescape')
 
@@ -1249,26 +1228,26 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
                 # print("Downloading", filename, "from", id)
                 print("==================== current path", str(loc))
-                call(['7z/7za', 'a', '-mx=0', str(loc)+'/'+id+'.zip',
-                     pathtemp[0] + '\\' + pathtemp[-1][4:-29]])
+                call(['7z/7za', 'a', '-mx=0', str(loc) + '/' + id + '.zip',
+                      pathtemp[0] + '\\' + pathtemp[-1][4:-29]])
                 zip_in_progress.remove(id)
                 zip_ids[id] = filename
-                path = loc+'/'+id+'.zip'
+                path = loc + '/' + id + '.zip'
                 filename = zip_ids[id] + ".zip"
 
         elif self.path.endswith('/') and spathsplit[-2].startswith('dl%3F'):
 
             path = self.translate_path(
-                '/'.join(spathsplit[:-2])+'/'+spathsplit[-2][5:]+'/')
+                '/'.join(spathsplit[:-2]) + '/' + spathsplit[-2][5:] + '/')
             if not os.path.isdir(path):
                 outp = "<!DOCTYPE HTML><h1>Directory not found</h1>"
             else:
                 print('init')
                 total_size, r = get_dir_size(
-                    path, 8*1024*1024*1024, True)  # max size limit = 8GB
+                    path, 8 * 1024 * 1024 * 1024, True)  # max size limit = 8GB
                 id = ''.join(random.choice(string.ascii_uppercase + string.digits)
-                             for _ in range(6))+'_' + str(time.time())
-                id += '0'*(24-len(id))
+                             for _ in range(6)) + '_' + str(time.time())
+                id += '0' * (24 - len(id))
                 # print(total_size)
                 too_big = total_size == '2big'
                 # print(too_big)
@@ -1276,8 +1255,8 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                 outp = '<!DOCTYPE HTML><h1>The folder size is too big</h1>\
 					' if too_big else """"<!DOCTYPE HTML><h1> Download will start shortly</h1>
 					<pre style='font-size:20px; font-weight: 600;'><b>Directory size:</b> """ + humanbytes(total_size) + """</pre>
-					<br><br>The directory has:\n<hr>""" + ("\n".join(['<u>'+i+'</u><br>' for i in r]) + """
-					<script>window.location.href="../dlY%3F"""+spathsplit[-2][5:] + "%3Fid="+id+'";</script>')
+					<br><br>The directory has:\n<hr>""" + ("\n".join(['<u>' + i + '</u><br>' for i in r]) + """
+					<script>window.location.href="../dlY%3F""" + spathsplit[-2][5:] + "%3Fid=" + id + '";</script>')
             encoded = outp.encode('utf-8', 'surrogateescape')
 
             f = io.BytesIO()
@@ -1294,8 +1273,8 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             # SWITCH TO A DIFFERENT DRIVE ON WINDOWS
             # NOT WORKING YET
 
-            if os.path.isdir(spathtemp[0][9:]+':\\'):
-                self.path = spathtemp[0][9]+':\\'
+            if os.path.isdir(spathtemp[0][9:] + ':\\'):
+                self.path = spathtemp[0][9] + ':\\'
                 self.directory = self.path
                 try:
                     self.path += spathtemp[0][10:]
@@ -1304,16 +1283,17 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                 self.path = spathtemp[1]
                 path = self.translate_path(self.path)
 
-                #print('path',path, '\nself.path',self.path)
+                # print('path',path, '\nself.path',self.path)
                 spathtemp = os.path.split(self.path)
                 pathtemp = os.path.split(path)
 
         elif spathsplit[-1].startswith('vid%3F') or os.path.exists(path):
             # SEND VIDEO PLAYER
-            if spathsplit[-1].startswith('vid%3F') and self.guess_type(os.path.join(pathtemp[0],  spathsplit[-1][6:])).startswith('video/'):
+            if spathsplit[-1].startswith('vid%3F') and self.guess_type(
+                    os.path.join(pathtemp[0], spathsplit[-1][6:])).startswith('video/'):
 
                 self.path = spathtemp[0] + '/' + spathtemp[1][6:]
-                path = os.path.join(pathtemp[0],  pathtemp[1][4:])
+                path = os.path.join(pathtemp[0], pathtemp[1][4:])
 
                 r = []
                 try:
@@ -1331,14 +1311,15 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 				r.append('<title>%s</title>\n</head>' % title)"""
                 with open('head.html', 'r', encoding='utf-8') as f:
                     directory_explorer_header = f.read()
-                #r.append(directory_explorer_header % (enc, title, title))
+                # r.append(directory_explorer_header % (enc, title, title))
 
-                if self.guess_type(os.path.join(pathtemp[0],  spathsplit[-1][6:])) not in ['video/mp4', 'video/ogg', 'video/webm']:
+                if self.guess_type(os.path.join(pathtemp[0], spathsplit[-1][6:])) not in ['video/mp4', 'video/ogg',
+                                                                                          'video/webm']:
                     r.append(
                         '<h2>It seems HTML player can\'t play this Video format, Try Downloading</h2>')
                 else:
                     ctype = self.guess_type(os.path.join(
-                        pathtemp[0],  spathsplit[-1][6:]))
+                        pathtemp[0], spathsplit[-1][6:]))
                     r.append('''
 <!-- stolen from http://plyr.io -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/RaSan147/httpserver_with_many_feat@main/video.css" />
@@ -1494,14 +1475,14 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         title = 'Directory listing for %s' % displaypath
         with open('head.html', 'r', encoding='utf-8') as f:
             directory_explorer_header = f.read()
-        #r.append(directory_explorer_header % (enc, title, title))
+        # r.append(directory_explorer_header % (enc, title, title))
         '''r.append('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" '
 				 '"http://www.w3.org/TR/html4/strict.dtd">')
 		r.append('<meta http-equiv="Content-Type" '
 				 'content="text/html; charset=%s">' % enc)
 		r.append('<title>%s</title>\n</head>' % title)'''
-        #r.append('<body>\n<h1>%s</h1>' % title)
-        #r.append('<hr>\n<ul id= "linkss">')
+        # r.append('<body>\n<h1>%s</h1>' % title)
+        # r.append('<hr>\n<ul id= "linkss">')
         r_li = []  # type + file_link
         # f  : File
         # d  : Directory
@@ -1653,9 +1634,9 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     extensions_map = mimetypes.types_map.copy()
     extensions_map.update({
         '': 'application/octet-stream',  # Default
-            '.py': 'text/plain',
-            '.c': 'text/plain',
-            '.h': 'text/plain',
+        '.py': 'text/plain',
+        '.c': 'text/plain',
+        '.h': 'text/plain',
     })
 
 
@@ -1733,7 +1714,6 @@ def executable(path):
 
 
 class CGIHTTPRequestHandler(SimpleHTTPRequestHandler):
-
     """Complete HTTP server with GET, HEAD and POST commands.
 
     GET and HEAD also support running CGI scripts.
@@ -1787,7 +1767,7 @@ class CGIHTTPRequestHandler(SimpleHTTPRequestHandler):
         """
         collapsed_path = _url_collapse_path(self.path)
         dir_sep = collapsed_path.find('/', 1)
-        head, tail = collapsed_path[:dir_sep], collapsed_path[dir_sep+1:]
+        head, tail = collapsed_path[:dir_sep], collapsed_path[dir_sep + 1:]
         if head in self.cgi_directories:
             self.cgi_info = head, tail
             return True
@@ -1808,15 +1788,15 @@ class CGIHTTPRequestHandler(SimpleHTTPRequestHandler):
         """Execute a CGI script."""
         dir, rest = self.cgi_info
         path = dir + '/' + rest
-        i = path.find('/', len(dir)+1)
+        i = path.find('/', len(dir) + 1)
         while i >= 0:
             nextdir = path[:i]
-            nextrest = path[i+1:]
+            nextrest = path[i + 1:]
 
             scriptdir = self.translate_path(nextdir)
             if os.path.isdir(scriptdir):
                 dir, rest = nextdir, nextrest
-                i = path.find('/', len(dir)+1)
+                i = path.find('/', len(dir) + 1)
             else:
                 break
 
@@ -1877,7 +1857,7 @@ class CGIHTTPRequestHandler(SimpleHTTPRequestHandler):
                 if authorization[0].lower() == "basic":
                     try:
                         authorization = authorization[1].encode('ascii')
-                        authorization = base64.decodebytes(authorization).\
+                        authorization = base64.decodebytes(authorization). \
                             decode('ascii')
                     except (binascii.Error, UnicodeError):
                         pass
@@ -2069,10 +2049,10 @@ if __name__ == '__main__':
                         help='Run as CGI Server')
     parser.add_argument('--bind', '-b', metavar='ADDRESS',
                         help='Specify alternate bind address '
-                        '[default: all interfaces]')
+                             '[default: all interfaces]')
     parser.add_argument('--directory', '-d', default=ftp_dir,
                         help='Specify alternative directory '
-                        '[default:current directory]')
+                             '[default:current directory]')
     parser.add_argument('port', action='store',
                         default=all_port, type=int,
                         nargs='?',
@@ -2103,6 +2083,7 @@ if __name__ == '__main__':
 
 if reload == True:
     import pathlib
+
     xxx = str(pathlib.Path(__file__))
     call([sys.executable, xxx, *sys.argv[1:]])
     sys.exit(0)
