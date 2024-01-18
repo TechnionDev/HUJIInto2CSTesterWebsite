@@ -1,5 +1,0 @@
-//nested strings
-
-void bar() {
-	printf("This string \" is \" nested");
-}

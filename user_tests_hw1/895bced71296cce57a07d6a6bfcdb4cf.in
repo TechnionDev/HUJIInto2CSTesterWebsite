@@ -1,6 +1,0 @@
-//Lex prefer the longest lexema
-bool whiley = true;
-int returned;
-bool falsee = false;
-bool truee = true;
-
