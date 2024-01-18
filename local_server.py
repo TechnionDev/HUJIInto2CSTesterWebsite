@@ -19,7 +19,7 @@ import html
 import email.utils
 import datetime
 import copy
-from send2trash import send2trash, TrashPermissionError
+# from send2trash import send2trash, TrashPermissionError
 import pkg_resources as pkg_r
 import tempfile
 import shutil
@@ -1178,14 +1178,15 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             print("Recycling", xpath)
             msg = "<!doctype HTML><h1>Recycled successfully  " + xpath + "</h1>"
             try:
-                try:
-                    send2trash(xpath)
-                except TrashPermissionError:
-                    if os.path.isfile(xpath):
-                        os.remove(xpath)
-                    else:
-                        shutil.rmtree(xpath)
-                    msg = msg = "<!doctype HTML><h1>Recycling unavailable. FORCE DELETING  " + xpath + "</h1>"
+                pass
+                # try:
+                #     send2trash(xpath)
+                # except TrashPermissionError:
+                #     if os.path.isfile(xpath):
+                #         os.remove(xpath)
+                #     else:
+                #         shutil.rmtree(xpath)
+                #     msg = "<!doctype HTML><h1>Recycling unavailable. FORCE DELETING  " + xpath + "</h1>"
             except Exception as e:
                 print(e)
                 msg = "<!doctype HTML><h1>Recycling failed  " + xpath + \
