@@ -1067,7 +1067,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                     cmd = f'cp {os.path.join(cwd, "ex3_tester.py")} ./'
                     result += f'Running "{cmd}":\n'
                     result += subprocess.check_output(cmd, shell=True).decode()
-                    cmd = f'python ex3_tester.py 2>&1'
+                    cmd = f'python3 ex3_tester.py 2>&1'
                     result += f'Running "{cmd}":\n'
                     result += subprocess.check_output(cmd, shell=True).decode()
                 except subprocess.CalledProcessError as e:
