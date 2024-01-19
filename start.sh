@@ -1,1 +1,1 @@
-python3 local_server.py -d tmp/ 8080
+python3 local_server.py -d tmp/ 443
