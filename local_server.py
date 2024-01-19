@@ -15,10 +15,12 @@ import posixpath
 import mimetypes
 import io
 import http.client
+import threading
 import html
 import email.utils
 import datetime
 import copy
+import ssl
 # from send2trash import send2trash, TrashPermissionError
 # import pkg_resources as pkg_r
 import tempfile
@@ -28,12 +30,17 @@ import sys
 from subprocess import call
 import hashlib
 import subprocess
+import http.server
 
 ftp_dir = './tmp'
 # DEFAULT PORT TO LAUNCH SERVER
 all_port = 6969
 # UPLOAD PASSWORD SO THAT ANYONE RANDOM CAN'T UPLOAD
 PASSWORD = "".encode('utf-8')
+SSL_CERT_FILE_PATH = '/etc/letsencrypt/live/hujiintro2cs.gtelem.com/fullchain.pem'
+SSL_KEY_FILE_PATH = '/etc/letsencrypt/live/hujiintro2cs.gtelem.com/privkey.pem'
+DOMAIN = 'hujiintro2cs.gtelem.com'
+HTTPS_PORT = 443
 log_location = "G:/py-server/"  # fallback log_location = "./"
 
 # FEATURES
@@ -295,9 +302,18 @@ DEFAULT_ERROR_CONTENT_TYPE = "text/html;charset=utf-8"
 class HTTPServer(socketserver.TCPServer):
     allow_reuse_address = 1  # Seems to make sense in testing environment
 
+    def __init__(self, address, *args, **kwargs):
+        super(HTTPServer, self).__init__(address, *args, **kwargs)
+        if address[1] == HTTPS_PORT:
+            print(f"Port {HTTPS_PORT} detected. Wrapping socket with SSL context")
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+            context.load_cert_chain(certfile=SSL_CERT_FILE_PATH, keyfile=SSL_KEY_FILE_PATH)
+            self.socket = context.wrap_socket(self.socket,
+                                              server_side=True)
+
     def server_bind(self):
         """Override server_bind to store the server name."""
-        socketserver.TCPServer.server_bind(self)
+        super().server_bind()
         host, port = self.server_address[:2]
         self.server_name = socket.getfqdn(host)
         self.server_port = port
@@ -793,6 +809,13 @@ class BaseHTTPRequestHandler(socketserver.StreamRequestHandler):
     }
 
 
+class RedirectHandler(http.server.SimpleHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(301)
+        self.send_header('Location', f'https://{DOMAIN}' + self.path)
+        self.end_headers()
+
+
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     """Simple HTTP request handler with GET and HEAD commands.
 
@@ -833,7 +856,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         if not self.is_ip_allowed():
             if '236360_secret_compi_register' in self.path:
                 os.system(
-                    f'echo \#\# Auto registered using {self.path} on {datetime.datetime.now()} >> ./whitelist.txt')
+                    f'echo ## Auto registered using {self.path} on {datetime.datetime.now()} >> ./whitelist.txt')
                 os.system(f'echo {self.client_address[0]} >> ./whitelist.txt')
                 self.send_error(201, 'Registered')
                 return
@@ -1073,7 +1096,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                     result += subprocess.check_output(cmd, shell=True).decode()
                 except subprocess.CalledProcessError as e:
                     # time.sleep(100)
-                    return (False, f"Tests failed:\n{result}\ {'=' * 8} EXCEPTION {'=' * 8}\n{e.output.decode()}")
+                    return (False, f"Tests failed:\n{result} {'=' * 8} EXCEPTION {'=' * 8}\n{e.output.decode()}")
                 finally:
                     os.chdir(cwd)
 
@@ -2007,6 +2030,10 @@ def test(HandlerClass=BaseHTTPRequestHandler,
 
     HandlerClass.protocol_version = protocol
     httpd = ServerClass(addr, HandlerClass)
+    unsecure_httpd = None
+    if port == HTTPS_PORT:
+        _, addr = _get_best_family(bind, 80)
+        unsecure_httpd = ServerClass(addr, RedirectHandler)
     host, port = httpd.socket.getsockname()[:2]
     url_host = f'[{host}]' if ':' in host else host
     hostname = socket.gethostname()
@@ -2018,9 +2045,15 @@ def test(HandlerClass=BaseHTTPRequestHandler,
         # TODO: need to check since the output is "(http://[::]:6969/) ..."
         f"(http://{url_host}:{port}/) ...\n"
         f"Server is probably running on {local_ip}:{port}"
-
     )
     try:
+        # Create a thread for the port 80 serving of the server
+        if unsecure_httpd:
+            print(f'Serving on port 80 as well')
+            thread = threading.Thread(target=unsecure_httpd.serve_forever)
+            thread.daemon = True
+            thread.start()
+
         httpd.serve_forever()
     except KeyboardInterrupt:
         print("\nKeyboard interrupt received, exiting.")
