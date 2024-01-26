@@ -940,7 +940,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         # PASSWORD SYSTEM
 
         hw_num_raw = self.rfile.readline()
-        hw_num = int(hw_num_raw)
+        hw_num = float(hw_num_raw)
         self.log_message(f'post hw_num: {hw_num}')
         # if hw_num != PASSWORD + b'\r\n':  # readline returns password with \r\n at end
         #     # won't even read what the random guy has to say and slap 'em
@@ -1076,29 +1076,32 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                 result += f"Test failed on a few executables, the test file will be manually reviewed\n"
             return (True, result or "No diff")
 
+    def run_cmd(self, cmd):
+        result = f'Running {cmd}:\n'
+        result += f'{subprocess.check_output(cmd, shell=True).decode()}\n'
+        return result
+
     def run_tests_for_zip(self, zip_file_path, hw_num):
         # Create tmp dir
         result = ""
         with tempfile.TemporaryDirectory() as tmpdirname:
-            extract_dir = os.path.join(tmpdirname, 'ex3')
+            extract_dir = os.path.join(tmpdirname, f'ex{str(hw_num).replace(".", "_")}')
             os.system(f'mkdir -p {extract_dir}')
             self.log_message(f'Extract directory {extract_dir}')
             os.system(f'unzip {zip_file_path} -d {extract_dir}')
-            if hw_num == 3:
-                cwd = os.getcwd()
-                os.chdir(tmpdirname)
-                try:
-                    cmd = f'cp {os.path.join(cwd, "ex3_tester.py")} ./'
-                    result += f'Running "{cmd}":\n'
-                    result += subprocess.check_output(cmd, shell=True).decode()
-                    cmd = f'python3 ex3_tester.py 2>&1'
-                    result += f'Running "{cmd}":\n'
-                    result += subprocess.check_output(cmd, shell=True).decode()
-                except subprocess.CalledProcessError as e:
-                    # time.sleep(100)
-                    return (False, f"Tests failed:\n{result} {'=' * 8} EXCEPTION {'=' * 8}\n{e.output.decode()}")
-                finally:
-                    os.chdir(cwd)
+            cwd = os.getcwd()
+            os.chdir(tmpdirname)
+            try:
+                if hw_num == 3:
+                    result += self.run_cmd(f'cp {os.path.join(cwd, "ex3_tester.py")} ./')
+                    result += self.run_cmd(f'python3 ex3_tester.py 2>&1')
+                elif hw_num == 3.5:
+                    result += self.run_cmd(f'cp {os.path.join(cwd, "ex3_5_tester.py")} ./')
+                    result += self.run_cmd(f'python3 ex3_5_tester.py 2>&1')
+            except subprocess.CalledProcessError as e:
+                return (False, f"Tests failed:\n{result} {'=' * 8} EXCEPTION {'=' * 8}\n{e.output.decode()}")
+            finally:
+                os.chdir(cwd)
 
             return (True, result)
 
